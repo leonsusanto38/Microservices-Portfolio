@@ -1,4 +1,4 @@
-#Department News Board
+##Department News Board
 
 Department News Board adalah sebuah aplikasi yang digunakan untuk memberikan pengumuman berita pada aplikasi mobile / website. Pada service ini kita dapat membuat berita.
 
