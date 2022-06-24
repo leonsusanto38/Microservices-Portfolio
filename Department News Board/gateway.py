@@ -1,153 +1,259 @@
-import json
-import string
-import requests as req
-from unittest import result
-from xml.etree.ElementTree import tostring
-
-from nameko.rpc import RpcProxy
+import requests
 from nameko.web.handlers import http
 from werkzeug.wrappers import Response
+from nameko.rpc import RpcProxy
 from session import SessionProvider
 
 class GatewayService:
-    name = 'gateway'
+    name = "gateway"
 
-    database = RpcProxy('user_service')
     session_provider = SessionProvider()
-    
-    @http('POST', '/regis')
-    def regis(self, request):
+    services = RpcProxy('news_service')
+
+    @http('POST', '/register')
+    def register(self, request):
         data = format(request.get_data(as_text=True))
-        arr  =  data.split("&")
+        array = data.split("&")
 
-        username = "" 
-        password = "" 
+        username = ""
+        password = ""
 
-        for separator in arr:
-            node = separator.split("=")
-            if node[0] == "username":
+        for index in array:
+            node = index.split("=")
+            if (node[0] == "username"):
                 username = node[1]
-            if node[0] == "password":
+            elif (node[0] == "password"):
                 password = node[1]
-        data_regis = self.database.regis(username, password)
-        return json.dumps(data_regis)
-    
-    @http('GET', '/login')
-    def login(self, request):
-        data = format(request.get_data(as_text=True))
-        arr  =  data.split("&")
-
-        username = "" 
-        password = "" 
-
-        for separator in arr:
-            node = separator.split("=")
-            if node[0] == "username":
-                username = node[1]
-            if node[0] == "password":
-                password = node[1]
-        flags = self.database.login(username, password)
+        password = requests.utils.unquote(password)
         
-        if(flags == 1):
-            user_data = {
-                'username': username,
-                'password': password
-            }
-            session_id = self.session_provider.set_session(user_data)
-            response = Response(str(user_data))
-            response.set_cookie('SESSID', session_id)
-            return response
+        result = self.services.register(username, password)
+
+        responses = {
+            'status': None,
+            'message': None,
+            'data': None,
+        }
+
+        if result != None:
+            responses['status'] = "Success"
+            responses['message'] = "Register success!"
+            responses['data'] = result
         else:
-            result = []
-            result.append("Username / password incorrect")
-            return json.dumps(result)
-    
-    @http('GET', '/check')
-    def check(self, request):
+            responses['status'] = "Error"
+            responses['message'] = "Username already taken!"
+
+        return Response(str(responses))
+
+    @http('POST', '/login')
+    def login(self, request):
+        responses = {
+            'status': None,
+            'message': None,
+            'data': None,
+        }
+
         cookies = request.cookies
-        return Response(cookies['SESSID'])
-    
-    @http('POST', '/logout')
+        if cookies:
+            responses['status'] = "Error"
+            responses['message'] = "You already login!"
+            return Response(str(responses))
+        else:
+            data = format(request.get_data(as_text=True))
+            array = data.split("&")
+
+            username = ""
+            password = ""
+
+            for index in array:
+                node = index.split('=')
+                if (node[0] == "username"):
+                    username = node[1]
+                elif (node[0] == "password"):
+                    password = node[1]
+            password = requests.utils.unquote(password)
+            
+            result = self.services.login(username, password)
+
+            if result != None:
+                responses['status'] = "Success"
+                responses['message'] = "Login success!"
+                responses['data'] = result
+                
+                response = Response(str(responses))
+                session_id = self.session_provider.set_session(responses)
+                response.set_cookie('SESS_ID', session_id)
+                
+                return response
+            else:
+                responses['status'] = "Error"
+                responses['message'] = "Wrong username & password!"
+                return Response(str(responses))
+
+    @http('GET', '/logout')
     def logout(self, request):
         cookies = request.cookies
+        
+        responses = {
+            'status': None,
+            'message': None,
+            'data': None,
+        }
+
         if cookies:
-            confirm = self.session_provider.delete_session(cookies['SESSID'])
-            if (confirm):
-                response = Response('Logout successful')
-                response.delete_cookie('SESSID')
-            else:
-                response = Response("Logout failed")
+            responses['status'] = "Success"
+            responses['message'] = "Logout success!"
+
+            response = Response(str(responses))
+            response.delete_cookie('SESS_ID')
+            
             return response
         else:
-            response = Response('Required login')
-            return response
-        
-    @http('GET', '/all_news')
+            responses['status'] = "Error"
+            responses['message'] = "You not logged in!"
+
+            return Response(str(responses))
+
+    @http('GET', '/news')
     def get_all_news(self, request):
-        news = self.database.get_all_news()
-        return json.dumps(news)
-    
-    @http('GET', '/all_news/<int:id>')
-    def get_news(self, request, id):
-        news = self.database.get_news(id)
-        return json.dumps(news)
-    
-    @http('POST', '/post_news')
-    def post_news(self, request):
+        result = self.services.get_all_news()
+
+        responses = {
+            'status': None,
+            'message': None,
+            'data': None,
+        }
+
+        if result != None:
+            responses['status'] = "Success"
+            responses['data'] = result
+        else:
+            responses['status'] = "Error"
+            responses['message'] = "News empty!"
+
+        return Response(str(responses))
+
+    @http('GET', '/news/<int:news_id>')
+    def get_news_by_id(self, request, news_id):
+        result = self.services.get_news_by_id(news_id)
+
+        responses = {
+            'status': None,
+            'message': None,
+            'data': None,
+        }
+
+        if result != None:
+            responses['status'] = "Success"
+            responses['data'] = result
+        else:
+            responses['status'] = "Error"
+            responses['message'] = "News not found / archived!"
+        
+        return Response(str(responses))
+
+    @http('POST', '/add_news')
+    def add_news(self, request):
         cookies = request.cookies
+        responses = {
+                'status': None,
+                'message': None,
+                'data': None,
+            }
+
+        if cookies:
+            
+            data = format(request.get_data(as_text=True))
+            array = data.split("&")
+
+            writer = ""
+            news = ""
+
+            for index in array:
+                node = index.split('=')
+                if (node[0] == "writer"):
+                    writer = node[1]
+                elif (node[0] == "news"):
+                    news = node[1]
+            writer = requests.utils.unquote(writer)
+            news = requests.utils.unquote(news)
+
+            result = self.services.add_news(writer, news)
+
+            if result != None:
+                responses['status'] = "Success"
+                responses['message'] = "News added!"
+                responses['data'] = result
+            else:
+                responses['status'] = "Error"
+                responses['message'] = "Failed to add news!"
+        else:
+            responses['status'] = "Error"
+            responses['message'] = "You need to login first!"
+        
+        return Response(str(responses))
+
+    @http('PUT', '/edit_news/<int:news_id>')
+    def edit_news(self, request, news_id):
+        cookies = request.cookies
+        responses = {
+                'status': None,
+                'message': None,
+                'data': None,
+            }
+
         if cookies:
             data = format(request.get_data(as_text=True))
-            arr  =  data.split("&")
+            array = data.split("&")
 
-            username = "" 
-            news = "" 
+            writer = ""
+            news = ""
 
-            for separator in arr:
-                node = separator.split("=")
-                if node[0] == "username":
-                    username = node[1]
-                if node[0] == "news":
+            for index in array:
+                node = index.split('=')
+                if (node[0] == "writer"):
+                    writer = node[1]
+                elif (node[0] == "news"):
                     news = node[1]
-            news = req.utils.unquote(news)
-            data = self.database.post_news(username, news)
-            return json.dumps(data)
-        else:
-            result = []
-            result.append("Login Required")
-            return json.dumps(result)
-        
-    @http('POST', '/update_news/<int:id>')
-    def edit_news(self, request, id):
-        cookies = request.cookies
-        if cookies:
-            data = format(request.get_data(as_text=True))
-            arr  =  data.split("&")
+            writer = requests.utils.unquote(writer)
+            news = requests.utils.unquote(news)
 
-            username = "" 
-            news = "" 
+            result = self.services.edit_news(news_id, writer, news)
 
-            for separator in arr:
-                node = separator.split("=")
-                if node[0] == "username":
-                    username = node[1]
-                if node[0] == "news":
-                    news = node[1]
-            username = req.utils.unquote(username)
-            news = req.utils.unquote(news)
-            data = self.database.edit_news(id, username, news)
-            return json.dumps(data)
+            if result != None:
+                responses['status'] = "Success"
+                responses['message'] = "News edited!"
+                responses['data'] = result
+            else:
+                responses['status'] = "Error"
+                responses['message'] = "Failed to edit news!"
         else:
-            result = []
-            result.append("Login Required")
-            return json.dumps(result)
+            responses['status'] = "Error"
+            responses['message'] = "You need to login first!"
         
-    @http('DELETE', '/delete_news/<int:id>')
-    def delete_news(self, request, id):
+        return Response(str(responses))
+
+    @http('DELETE', '/delete_news/<int:news_id>')
+    def delete_news(self, request, news_id):
         cookies = request.cookies
+
+        responses = {
+            'status': None,
+            'message': None,
+            'data': None,
+        }
+
         if cookies:
-            news = self.database.delete_news(id)
-            return json.dumps(news)
+            result = self.services.delete_news(news_id)
+
+            if result != None:
+                responses['status'] = "Success"
+                responses['message'] = "News deleted"
+                responses['data'] = result
+            else:
+                responses['status'] = "Error"
+                responses['message'] = "News doesn't exist"
         else:
-            result = []
-            result.append("Login Required")
-            return json.dumps(result)
+            responses['status'] = "Error"
+            responses['message'] = "You need to login first!"
+        
+        return Response(str(responses))

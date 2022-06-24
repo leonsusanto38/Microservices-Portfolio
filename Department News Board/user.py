@@ -9,13 +9,13 @@ class UserService:
     database = dependencies.Database()
 
     @rpc
-    def regis(self, a, b):
-        user = self.database.regis(a, b)
+    def regis(self, username, password):
+        user = self.database.regis(username, password)
         return user
     
     @rpc
-    def login(self, a, b):
-        user = self.database.login(a, b)
+    def login(self, username, password):
+        user = self.database.login(username, password)
         return user
     
     @rpc

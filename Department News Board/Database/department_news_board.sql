@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 22, 2022 at 08:55 AM
+-- Generation Time: Jun 24, 2022 at 07:28 PM
 -- Server version: 10.4.22-MariaDB
 -- PHP Version: 7.4.28
 
@@ -29,8 +29,8 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `news` (
   `id` int(11) NOT NULL,
-  `username` varchar(30) NOT NULL,
-  `news` longtext NOT NULL,
+  `writer` varchar(30) NOT NULL,
+  `news` varchar(1000) NOT NULL,
   `upload_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -38,11 +38,9 @@ CREATE TABLE `news` (
 -- Dumping data for table `news`
 --
 
-INSERT INTO `news` (`id`, `username`, `news`, `upload_date`) VALUES
-(1, 'febri', 'tes123', '2022-06-22'),
-(2, 'febri update', 'pale update', '2022-06-22'),
-(3, 'febfebri', 'pale pale pal pale', '2022-06-22'),
-(5, 'abang', 'jago', '2022-06-22');
+INSERT INTO `news` (`id`, `writer`, `news`, `upload_date`) VALUES
+(5, 'leon', 'coba berita', '2022-06-25'),
+(6, 'leon', 'coba berita lagi 123', '2022-06-25');
 
 -- --------------------------------------------------------
 
@@ -60,8 +58,9 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`username`, `password`) VALUES
-('febri', 'pas'),
-('', '');
+('leon', 'leon tes 123'),
+('leona', 'leon123'),
+('bagus', 'bagus123');
 
 --
 -- Indexes for dumped tables
@@ -81,7 +80,7 @@ ALTER TABLE `news`
 -- AUTO_INCREMENT for table `news`
 --
 ALTER TABLE `news`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

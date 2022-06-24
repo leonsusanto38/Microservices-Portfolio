@@ -3,7 +3,6 @@ import uuid
 import redis
 from nameko.extensions import DependencyProvider
 
-
 class SessionWrapper:
     
     def __init__(self, connection):
@@ -16,7 +15,7 @@ class SessionWrapper:
     def generate_session_id(self):
         key = str(uuid.uuid4())
         # while self.redis.exist(key):
-            # key = str(uuid.uuid4())
+        #     key = str(uuid.uuid4())
         return key
 
     def set_session(self, user_data):
@@ -34,32 +33,19 @@ class SessionWrapper:
     def get_session(self, session_id):
         # Get the Data from Redis
         result = self.redis.get(session_id)
-
+        
         if result:
-        # Unpack the user data from Redis
+            # Unpack the user data from Redis
             user_data = pickle.loads(result)
         else:
             user_data = None
-
         return user_data
-    
-    def delete_session(self, session_id):
-        # Get the Data from Redis
-        result = self.redis.get(session_id)
 
-        if result:
-        # Unpack the user data from Redis
-            self.redis.delete(session_id)
-            return True
-        else:
-            return False
-    
+
 class SessionProvider(DependencyProvider):
 
     def setup(self):
-        self.client = redis.Redis(host='localhost', port=6379, db=0)
+        self.client = redis.Redis(host='127.0.0.1', port=6379, db=0)
     
     def get_dependency(self, worker_ctx):
         return SessionWrapper(self.client)
-
-
