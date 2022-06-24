@@ -8,34 +8,26 @@ class GatewayService:
     name = "gateway"
 
     session_provider = SessionProvider()
-    services = RpcProxy('research_paper_storage_service')
+    services = RpcProxy('cloud_storage_service')
 
     @http('POST', '/register')
     def register(self, request):
         data = format(request.get_data(as_text=True))
         array = data.split("&")
 
-        nrp = ""
-        name = ""
-        email = ""
+        username = ""
         password = ""
 
         for index in array:
             node = index.split("=")
-            if (node[0] == "nrp"):
-                nrp = node[1]
-            elif (node[0] == "name"):
-                name = node[1]
-            elif (node[0] == "email"):
-                email = node[1]
+            if (node[0] == "username"):
+                username = node[1]
             elif (node[0] == "password"):
                 password = node[1]
-        nrp = requests.utils.unquote(nrp)
-        name = requests.utils.unquote(name)
-        email = requests.utils.unquote(email)
+        username = requests.utils.unquote(username)
         password = requests.utils.unquote(password)
         
-        result = self.services.register(nrp, name, email, password)
+        result = self.services.register(username, password)
 
         responses = {
             'status': None,
@@ -49,7 +41,7 @@ class GatewayService:
             responses['data'] = result
         else:
             responses['status'] = "Error"
-            responses['message'] = "Email already taken!"
+            responses['message'] = "Username already taken!"
 
         return Response(str(responses))
 
@@ -70,19 +62,19 @@ class GatewayService:
             data = format(request.get_data(as_text=True))
             array = data.split("&")
 
-            email = ""
+            username = ""
             password = ""
 
             for index in array:
                 node = index.split("=")
-                if (node[0] == "email"):
-                    email = node[1]
+                if (node[0] == "username"):
+                    username = node[1]
                 elif (node[0] == "password"):
                     password = node[1]
-            email = requests.utils.unquote(email)
+            username = requests.utils.unquote(username)
             password = requests.utils.unquote(password)
             
-            result = self.services.login(email, password)
+            result = self.services.login(username, password)
 
             if result != None:
                 responses['status'] = "Success"
@@ -96,7 +88,7 @@ class GatewayService:
                 return response
             else:
                 responses['status'] = "Error"
-                responses['message'] = "Wrong email & password!"
+                responses['message'] = "Wrong username & password!"
                 return Response(str(responses))
 
     @http('GET', '/logout')

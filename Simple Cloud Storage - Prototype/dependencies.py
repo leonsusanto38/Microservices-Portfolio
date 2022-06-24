@@ -9,31 +9,31 @@ class DatabaseWrapper:
     def __init__(self, connection):
         self.connection = connection
 
-    def register(self, nrp, name, email, password):
+    def register(self, username, password):
         cursor = self.connection.cursor(dictionary=True, buffered=True)
         result = []
 
-        sql = "SELECT * FROM user WHERE email = '{}'".format(email)
+        sql = "SELECT * FROM user WHERE username = '{}'".format(username)
         cursor.execute(sql)
         
         if (cursor.rowcount > 0):
             cursor.close()
             return None
         else:
-            sql = "INSERT INTO user VALUES('{}', '{}', '{}', '{}')".format(nrp, name, email, password)
+            sql = "INSERT INTO user VALUES('{}', '{}')".format(username, password)
             cursor.execute(sql)
             self.connection.commit()
 
-            sql = "SELECT * FROM user WHERE nrp = '{}' AND name = '{}' AND email = '{}' AND password = '{}'".format(nrp, name, email, password)
+            sql = "SELECT * FROM user WHERE username = '{}' AND password = '{}'".format(username, password)
             cursor.execute(sql)
             result = cursor.fetchone()
             cursor.close()
             return result 
 
-    def login(self, email, password):
+    def login(self, username, password):
         cursor = self.connection.cursor(dictionary=True, buffered=True)
         result = []
-        sql = "SELECT * FROM user WHERE email = '{}' AND password = '{}'".format(email, password)
+        sql = "SELECT * FROM user WHERE username = '{}' AND password = '{}'".format(username, password)
         cursor.execute(sql)
 
         if (cursor.rowcount > 0):
@@ -57,7 +57,7 @@ class Database(DependencyProvider):
                 pool_size=5,
                 pool_reset_session=True,
                 host='127.0.0.1',
-                database='research_paper_storage_service',
+                database='simple_cloud_storage',
                 user='root',
                 password=''
             )
