@@ -13,4 +13,3 @@ Student’s Research Paper Storage adalah layanan dimana mahasiswa dapat menamba
 - Download Paper: proses yang dilakukan untuk mendownload paper, yang boleh melakukan download adalah mahasiswa yang merupakan pemilik file / dosen.
  
 - Search: proses ini akan melakukan searching berdasarkan judul / abstract / author.  Untuk kasus ini anda dapat melakukan dengan memanfaatkan teknologi Elastic Search.
-

@@ -1,16 +1,7 @@
-# Student’s Research Paper Storage
+# Simple Cloud Storage
 
-Student’s Research Paper Storage adalah layanan dimana mahasiswa dapat menambahkan  / menyimpan paper pada service yang disediakan. Proses ini dilakukan dengan fungsi - fungsi:
+Simple Cloud Storage adalah sebuah service yang digunakan untuk mengupload dan download file yang ada pada service, fungsi yang ada diantaranya:
 
-- Login: masuk kedalam sistem dan menambahkan session. Login menggunakan email dan password.
+- Upload File: merupakan fungsi yang digunakan untuk menaruh sebuah file pada service. Pada kasus ini jika anda melakukan implementasi session / login maka anda perlu menandai kepemilikan file.
 
-- Logout: menghapus session
-
-- Register User: menambahkan user kedalam sistem, proses ini akan menambahkan data user (nrp, nama, email, password) pada service.
- 
-- Upload Paper: proses melakukan upload paper dalam bentuk pdf yang dimana data judul dan abstract juga harus dimasukan, Upload akan memberikan info user mana yang memiliki paper tersebut. Proses ini memerlukan login
-
-- Download Paper: proses yang dilakukan untuk mendownload paper, yang boleh melakukan download adalah mahasiswa yang merupakan pemilik file / dosen.
- 
-- Search: proses ini akan melakukan searching berdasarkan judul / abstract / author.  Untuk kasus ini anda dapat melakukan dengan memanfaatkan teknologi Elastic Search.
-
+- Download File: merupakan sebuah fungsi yang digunakan untuk mendownload file yang terdapat pada service. Jika melakukan implementasi session / login maka anda perlu melakukan pengecekan apakah file tersebut dimiliki oleh user yang mengakses.
