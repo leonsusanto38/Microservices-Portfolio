@@ -1,3 +1,4 @@
+import os
 import requests
 from nameko.web.handlers import http
 from werkzeug.wrappers import Response
@@ -116,7 +117,7 @@ class GatewayService:
 
             response = Response(str(responses))
             response.delete_cookie('SESS_ID')
-            response.delete_cookie('username')
+            response.delete_cookie('email')
             
             return response
         else:
@@ -124,3 +125,53 @@ class GatewayService:
             responses['message'] = "You not logged in!"
 
             return Response(str(responses))
+
+    @http("POST", "/upload_file")
+    def upload_file(self, request):
+        cookies = request.cookies
+        responses = {
+                'status': None,
+                'message': None,
+                'data': None,
+            }
+
+        if cookies:
+            file_path = 'Storage/'+ cookies['email']
+
+            if os.path.exists(file_path):
+                responses['status'] = 'Error'
+                responses['message'] = 'File already exists'
+            else:
+                responses['message'] = 'Folder Created'
+                os.makedirs(file_path)
+            for file in request.files.items():
+                _, file_storage = file
+                file_storage.save(f"{file_path}/{file_storage.filename}")
+                responses['status'] = "Success"
+        else:
+            responses['status'] = "Error"
+            responses['message'] = "You need to login first!"
+        
+        return Response(str(responses))
+
+    @http("GET", "/download_file/<string:file_name>")
+    def download_file(self, request, file_name):
+        cookies = request.cookies
+        responses = {
+                'status': None,
+                'message': None,
+                'data': None,
+            }
+
+        if cookies:
+            file_path = 'Storage/'+ cookies['email'] + "/" + file_name
+            _, file_extension = os.path.splitext(file_path)
+            responses['status'] = "Success"
+            responses['message'] = "File downloaded!"
+
+            return Response(open(f"{file_path}", "rb").read(), mimetype="application/"+file_extension)
+        else:
+            responses['status'] = "Error"
+            responses['message'] = "You need to login first!"
+        
+        return Response(str(responses))
