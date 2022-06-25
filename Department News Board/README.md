@@ -11,4 +11,8 @@ Fungsi pada service ini:
 
 - Get News By ID: untuk mendapatkan sebuah news berdasarkan ID yang diberikan. Tidak perlu melakukan login untuk memanggil fungsi ini.
 
+- Upload File: mengupload file, proses ini perlu melakukan login.
+
+- Download File By Writer Username: mendapatkan file berdasarkan username writer, tidak perlu login untuk memanggil fungsi ini.
+
 - Manage News: meliputi Add, Edit, atau Delete News yang ada pada Board, proses ini perlu melakukan login.
