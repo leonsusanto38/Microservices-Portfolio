@@ -92,6 +92,7 @@ class GatewayService:
                 response = Response(str(responses))
                 session_id = self.session_provider.set_session(responses)
                 response.set_cookie('SESS_ID', session_id)
+                response.set_cookie('email', email)
                 
                 return response
             else:
@@ -115,6 +116,7 @@ class GatewayService:
 
             response = Response(str(responses))
             response.delete_cookie('SESS_ID')
+            response.delete_cookie('username')
             
             return response
         else:

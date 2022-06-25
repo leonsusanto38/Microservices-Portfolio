@@ -2,7 +2,7 @@ from nameko.rpc import rpc
 import dependencies
 
 class ResearchPaperStorageService:
-    name = "cloud_storage_service"
+    name = "user_cloud_storage_service"
 
     database = dependencies.Database()
 

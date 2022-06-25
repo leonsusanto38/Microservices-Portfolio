@@ -1,3 +1,8 @@
+from hashlib import sha256
+import json
+from nameko.exceptions import BadRequest
+
+import os
 import requests
 from nameko.web.handlers import http
 from werkzeug.wrappers import Response
@@ -8,7 +13,7 @@ class GatewayService:
     name = "gateway"
 
     session_provider = SessionProvider()
-    services = RpcProxy('cloud_storage_service')
+    user_services = RpcProxy('user_cloud_storage_service')
 
     @http('POST', '/register')
     def register(self, request):
@@ -27,7 +32,7 @@ class GatewayService:
         username = requests.utils.unquote(username)
         password = requests.utils.unquote(password)
         
-        result = self.services.register(username, password)
+        result = self.user_services.register(username, password)
 
         responses = {
             'status': None,
@@ -74,7 +79,7 @@ class GatewayService:
             username = requests.utils.unquote(username)
             password = requests.utils.unquote(password)
             
-            result = self.services.login(username, password)
+            result = self.user_services.login(username, password)
 
             if result != None:
                 responses['status'] = "Success"
@@ -84,6 +89,7 @@ class GatewayService:
                 response = Response(str(responses))
                 session_id = self.session_provider.set_session(responses)
                 response.set_cookie('SESS_ID', session_id)
+                response.set_cookie('username', username)
                 
                 return response
             else:
@@ -107,6 +113,7 @@ class GatewayService:
 
             response = Response(str(responses))
             response.delete_cookie('SESS_ID')
+            response.delete_cookie('username')
             
             return response
         else:
@@ -114,3 +121,53 @@ class GatewayService:
             responses['message'] = "You not logged in!"
 
             return Response(str(responses))
+
+    @http("POST", "/upload_file")
+    def upload_file(self, request):
+        cookies = request.cookies
+        responses = {
+                'status': None,
+                'message': None,
+                'data': None,
+            }
+
+        if cookies:
+            file_path = 'Storage/'+ cookies['username']
+
+            if os.path.exists(file_path):
+                responses['status'] = 'Error'
+                responses['message'] = 'File already exists'
+            else:
+                responses['message'] = 'Folder Created'
+                os.makedirs(file_path)
+            for file in request.files.items():
+                _, file_storage = file
+                file_storage.save(f"{file_path}/{file_storage.filename}")
+                responses['status'] = "Success"
+        else:
+            responses['status'] = "Error"
+            responses['message'] = "You need to login first!"
+        
+        return Response(str(responses))
+
+    @http("GET", "/download_file/<string:file_name>")
+    def download_file(self, request, file_name):
+        cookies = request.cookies
+        responses = {
+                'status': None,
+                'message': None,
+                'data': None,
+            }
+
+        if cookies:
+            file_path = 'Storage/'+ cookies['username'] + "/" + file_name
+            _, file_extension = os.path.splitext(file_path)
+            responses['status'] = "Success"
+            responses['message'] = "File downloaded!"
+
+            return Response(open(f"{file_path}", "rb").read(), mimetype="application/"+file_extension)
+        else:
+            responses['status'] = "Error"
+            responses['message'] = "You need to login first!"
+        
+        return Response(str(responses))

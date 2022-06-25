@@ -82,6 +82,7 @@ class GatewayService:
                 response = Response(str(responses))
                 session_id = self.session_provider.set_session(responses)
                 response.set_cookie('SESS_ID', session_id)
+                response.set_cookie('username', username)
                 
                 return response
             else:
@@ -105,6 +106,7 @@ class GatewayService:
 
             response = Response(str(responses))
             response.delete_cookie('SESS_ID')
+            response.delete_cookie('username')
             
             return response
         else:
@@ -161,22 +163,18 @@ class GatewayService:
             }
 
         if cookies:
-            
             data = format(request.get_data(as_text=True))
             array = data.split("&")
 
-            writer = ""
             news = ""
 
             for index in array:
                 node = index.split('=')
-                if (node[0] == "writer"):
-                    writer = node[1]
-                elif (node[0] == "news"):
+                if (node[0] == "news"):
                     news = node[1]
-            writer = requests.utils.unquote(writer)
+            writer = str(cookies['username'])
             news = requests.utils.unquote(news)
-
+            
             result = self.services.add_news(writer, news)
 
             if result != None:

@@ -1,3 +1,4 @@
+import os
 from nameko.extensions import DependencyProvider
 import mysql.connector
 from mysql.connector import Error
